@@ -14,6 +14,6 @@ For example, you could use this to depict:
 
 • And more!
 
-CRMD just requires that you put in an Excel sheet explaining who the characters are and what each pair is that has a bond, and the program will draw it!
+CRMD just requires that you put in an Excel sheet explaining who the characters are and what each pair is that has a bond, and the program will draw it! As might be suspected, CRMD Sheet Template included in this repository can have such data added to it and then be entered into the program accordingly.
 
 Have fun!
