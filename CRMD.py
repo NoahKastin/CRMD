@@ -46,7 +46,7 @@ import numbers # This lets me test if user-input color strings are correct.
 # This asks the user for a file path to their relevant data sheet so it can be read from for variables later.
 file_path = "" # This sets up the file_path variable, leaving it blank as a condition on which the while loop can be run until it gets a valid file_path.
 print("To enter your Excel sheet, please copy its file path, then paste it in here, and finally hit return.") # This prompts the user to drag and drop in a file.
-print("If you're not sure how to do this, type anything else below and hit return to get a longer explanation.") # This informs the user of how to trigger the help message.
+print("If you're not sure how to format the sheet, type anything else below and hit return to get a longer explanation.") # This informs the user of how to trigger the help message.
 
 while file_path == "":
     
@@ -57,7 +57,12 @@ while file_path == "":
         # This imports the list of names from the data sheet into a variable called "names" for quick access later.
         names = pd.read_excel(file_path, sheet_name='Names', index_col=0, header=0, usecols="A") # This just reads the first column of the Names sheet of the fed-in Excel file, thus saving what names are to be displayed in the diagram to this variable so they can be displayed later.
         #print(names) # This prints what I've just gotten for testing purposes.
-        break
+
+        division_by_zero = len(names) / len(names) # This tests to see if there's actually anything in names, as if there isn't, the program will crash when it leaves the loop.
+        #print(division_by_zero) # This prints what I've just gotten for testing purposes.
+
+        break # This continues the program if it gets a valid file_path.
+    
     except: # If there isn't a valid file path, this blanks the file_path variable to cause the loop to run again, as well as explaining the program to the user.
         file_path = ""
         print("To make the program work, please add the Excel sheet of your character relationship map.")
