@@ -16,6 +16,8 @@ For example, you could use this to depict:
 
 CRMD just requires that you put in an Excel sheet explaining who the characters are and what each pair is that has a bond, and the program will draw it!
 
-As an example of such an Excel sheet, you can download, use, or modify as you see fit the Sample Sheet. This sheet draws a set of familial relationships from near the beginning of Jane Austen's Pride and Prejudice as an example of what you, the user, could use it for. You can then delete the Austen-specific cells from this sheet and replace them with whatever you like.
+As an example of such an Excel sheet, you can download, use, or modify as you see fit the Sample Sheet. This sheet draws a set of familial relationships from near the beginning of Jane Austen's Pride and Prejudice as an example of what you, the user, could use it for. The result looks like this:
 
-Have fun!
+![Sample CRMD output.](https://github.com/NoahKastin/CRMD/blob/main/Sample%20Sheet%20Output.png)
+
+You can delete the Austen-specific cells from this sheet and replace them with whatever you like. Have fun!
