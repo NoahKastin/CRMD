@@ -88,7 +88,14 @@ diagram_nodes_num = len(names) # This sets the number of nodes itself to the num
 #diagram_nodes_num = random.randint(3, 32) # As a test in lieu of an Excel sheet, this sets the number of nodes itself, currently to a random number between 3 and 32 (32 being the largest I can conceive of needing).
 
 tilt_per_diagram_side = 360 / diagram_nodes_num # This sets the amount that the cursor should tilt per side of the diagram to make it the right shape.
-side_size = 50 # This sets the size of each side of the diagram.
+
+# This sets the size of each side of the diagram.
+base_side_size = 1800 # This sets a default size of a diagram side in the hypothetical, impossible one-node case.
+too_many_nodes = 20 # This sets the point at which diagrams should start dividing their size.
+if diagram_nodes_num < too_many_nodes: # This makes diagrams with few nodes have a nice, consistent size that doesn't go off the screen.
+    side_size = base_side_size / too_many_nodes
+else: # Formerly set to 50, this now makes the side_size get smaller as the diagram gets bigger to make it quicker and less space-consuming to draw diagrams with many nodes.
+    side_size = base_side_size / diagram_nodes_num
 
 # This calibrates the size of the angles in the diagram.
 # This will be used later to make the cursor move to the correct starting point for the diagram so it'll be properly offset from the center of the diagram.
@@ -97,10 +104,11 @@ angle_size = ((diagram_nodes_num - 2) * 180) / diagram_nodes_num
 #print(diagram_nodes_num, tilt_per_diagram_side, side_size, angle_size) # This prints the above variables' values to make sure that they're working.
 
 
-# This calculates the radius of the diagram, printing it at every step to see what, if anything, went wrong.
+# This calculates the radius of the diagram, printing it at every step to see what, if anything, might go wrong during this process.
 #def print_dr(prefix): # This function prints the current state of diagram_radius, prefixed by what was changed since the last time it was printed for better debugging.
 #    print(prefix + str(diagram_radius))
 
+# IMPORTANT: Un-comment out the above function if you're going to un-comment out any of the below lines in this code block.
 #print("Now it's time to make a new variable that gives the radius of the diagram we'll draw, which mathematically is supposed to be the number of sides of the polygon divided by (2 times the sine of (180 divided by the number of nodes in the diagram))")
 diagram_radius = 180/diagram_nodes_num
 #print_dr("Dividing the number of nodes by 180 yields ")
