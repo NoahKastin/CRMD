@@ -8,6 +8,9 @@
 # by drawing the symbols and lines between them
 
 
+# special thanks to Pedro Gaya for pointing out an issue that was slowing the program way down!
+
+
 # This attempts to pacify users while the program boots up, which may take a while if you're running it for the first time in a given session of an environment.
 print("Welcome to the Character Relationship Map Drawer!")
 
@@ -25,6 +28,7 @@ def loading(percent):
 
 # This imports all the modules and prints test lines and loading status indicators to pacify users, as this can take a while.
 import turtle # This will let me draw the diagrams properly.
+turtle.speed(0) # This makes Turtle not slow itself down arbitrarily.
 #loading(20)
 import math # This will let me offset the diagram from the center properly.
 #loading(40)
@@ -41,17 +45,30 @@ import numbers # This lets me test if user-input color strings are correct.
 #print(turtle.xcor(), turtle.ycor()) # This shows where the cursor starts at for reference.
 
 
+# This checks if the user wants the program to draw lines all at once for speed or sequentially for beauty.
+print("Do you want to 1) watch the program draw the map or 2) have it run as fast as possible? Please type 1 or 2.")
+speedrun = input()
+print(speedrun) # This checks that the variable is working.
+while speedrun != "1" and speedrun != "2":
+    print("Ha ha, silly user, you were supposed to type 1 or 2!")
+    speedrun = input()
+    print(speedrun) # This checks that the variable is working.
+speedrun = int(speedrun) # This turns the variable into an integer for the below line.
+speedrun -= 1 # This makes it a yes or no question, 0 if not speedrunning and 1 if it is.
+print(speedrun) # This checks that the variable is working.
+
+
 # This imports the relevant Excel sheet into various variables.
 
 # This asks the user for a file path to their relevant data sheet so it can be read from for variables later.
 file_path = "" # This sets up the file_path variable, leaving it blank as a condition on which the while loop can be run until it gets a valid file_path.
-print("To enter your Excel sheet, please copy its file path, then paste it in here, and finally hit return.") # This prompts the user to drag and drop in a file.
+print("To enter your Excel sheet, please copy its file path, paste it in here, and hit return.") # This prompts the user to drag and drop in a file.
 print("If you're not sure how to format the sheet, type anything else below and hit return to get a longer explanation.") # This informs the user of how to trigger the help message.
 
 while file_path == "":
     
     try: # This tries to get a valid file path, leaving if it gets one.
-        file_path = input() # This sets the file path to what the user dragged and dropped in.
+        file_path = input().strip('\'"') # This sets the file path to what the user dragged and dropped in, minus any beginning or ending quotes, which are a common source of errors for this.
         #print(file_path) # This is a test line that displays the file path dropped in to make sure it's right.
 
         # This imports the list of names from the data sheet into a variable called "names" for quick access later.
@@ -71,6 +88,15 @@ while file_path == "":
         print("and one called Relationships (in title case), with each pair of characters who have a relationship enumerated along with their hex colors.")
         print("For example, if you have characters X and Y defined in Names, you might have a Relationships row where X is in the first column, Y in the second, and #000000 in the third to make a black line between X and Y.")
         print("To enter your Excel sheet, please copy its file path, then paste it in here, and finally hit return.") # This prompts the user to drag and drop in a file.
+
+
+# This thanks the user for putting in a file path. 
+print("Thanks!")
+
+
+# This advises patience if the user wanted things the non-obvious way, back from when it used to take time to do things the non-obvious way.
+#if speedrun == 1:
+    #print("Please be patient with this script, as you won't see it do anything until it's done.")
 
 
 # This imports the list of colors from the data sheet into a variable called "name_colors" for quick access later, something I thought I'd use in an earlier version of the program but now realize I don't.
@@ -127,6 +153,11 @@ diagram_radius = side_size/diagram_radius
 #print_dr("Also, when we did this by the old formula, we got")
 
 
+# This makes the diagram not draw itself on screen for maximum speed if that's desired by the user.
+if speedrun == 1:
+    turtle.tracer(0, 0)
+
+
 # This moves the cursor far enough from the center that the diagram is centered on the center of the screen.
 
 #turtle.dot(1, "green") # This marks the center of the screen for reference. If this reference is needed, un-comment this line.
@@ -175,38 +206,21 @@ def random_color():
 default_color = "#000000" # This sets black as a default color for usage in the following function.
 
 
-# This tests if a user-entered color works for coloring a turtle item, and otherwise returns black as a default color.
-# It checks to see if the color_to_test is formatted properly, as #XXXXXX, where each X is a hexadecimal number. If not, it returns the color black and prints an error message.
+# A Perplexity function to test if a user-entered color works for coloring a turtle item, and otherwise returns the default color above.
 def is_color(color_to_test):
-    #def color_error_message(): # The following is a test line that tells the developer that broken colors are broken.
-        #print("A correct color for this name was not specified. Correct colors should be 7 characters long, with the first character being a # sign and the other 6 characters being numbers.")
-
-    # This checks to see if the second argument below, which checks if a hex color input begins with # (and so is a hex color), works at all.
-    # This is because the program crashed and said that the second argument was invaild in a previous version where only the second argument was specified.
-    # Specifically, the error message was:
-    # AttributeError: 'DataFrame' object has no attribute 'startswith'
-    #try: # This sees if the second argument below works at all by having it print based on whether or not the value in question begins with a # or not.
-    #    if color_to_test.startswith("#"):
-    #        print("#!")
-    #    else:
-    #        print("No # :(")
-    #except: # If the second argument below doesn't work, now we know that's a glitch and needs to be addressed, and maybe is the source of other glitches as well.
-    #    print("Hash checking isn't working. Hash spotting will be needed.")
-
-    # The first if argument checks if the color_to_test is 7 characters.
-    # THe second checks if it begins with #.
-    if len(color_to_test) != 7 or color_to_test.startswith("#") == False:
-        color_to_test = default_color
-        #color_error_message() This runs a test error message line. Before un-commenting this, un-comment the def color_error_message() line and the line succeeding it.
-
-    # The third checks if the other 6 characters, when converted from hexadecimal into decimal, are numbers.
+    # Handle NaN (from Excel empty cells) and non-string types up front
+    if color_to_test is None or (isinstance(color_to_test, float) and math.isnan(color_to_test)):
+        return default_color  # fallback color, e.g., "#000000"
+    color_str = str(color_to_test)
+    # Now the rest of your logic stays the same, but operates on color_str
+    if len(color_str) != 7 or not color_str.startswith("#"):
+        return default_color
     try:
-        isinstance(int(color_to_test.lstrip("#"), 16), numbers.Number)
-    except:
-        color_to_test = default_color
-        #color_error_message() This runs a test error message line. Before un-commenting this, un-comment the def color_error_message() line and the line succeeding it.
+        int(color_str.lstrip("#"), 16)
+    except Exception:
+        return default_color
+    return color_str
 
-    return color_to_test # This returns either the original color or an error color.
 
 # These test if the above function is working.
 #print(is_color("#007FFF")) # This tests to ensure that nothing is blocking working values.
@@ -260,111 +274,94 @@ def random_node_coordinates():
 should_i_draw = True # This is a variable that will be changed to True in the following function if the Excel syntax is entered properly.
 
 
-# This makes the turtle go to a node entered given the correct column of data to pull from the Excel table, needed for moving to the node on each end of a relationship.
-def go_to_node(column):
 
-    #print("Hello, world!") # This tests to make sure that the loop is working.
-
-    # This attempts to see if a given Relationship value is bigger than 0; if it doesn't, the program says it doesn't have the right value; if it breaks, it delivers the Python error message and keeps going.
-    try:
-        # This pulls the value for the first character in the relationship.
-        next_character_raw = pd.read_excel(file_path, sheet_name='Relationships', index_col=None, header=0, usecols=column, skiprows=i+1, nrows=0) # This pulls the first character's name.
-        next_character = next_character_raw.columns.values[0] # This turns the next_color_raw into a color value that can easily be used by the Python code.
-        #print(next_character) # This is a test line to ensure that the next_character pulling is working.
-
-        did_it_work = False # This is a variable that will be changed to True if the function can find a name.
-        #print(did_it_work) # This checks to see if the above is working.
-        
-        # This looks through the Characters sheet to try to match next_character to a character in that sheet to move the cursor to.
-        name_iterator = 0 # This sets a variable to 0 so it can iterate through the list of characters to try to match the value entered to a character value.
-        while name_iterator < names_num: # This iterates through name_iterator, trying to find a name that matches; if it does, it will move there; otherwise, it'll go on regardless.
-            current_name_raw = pd.read_excel(file_path, sheet_name='Names', index_col=None, header=0, usecols="A", skiprows=name_iterator+1, nrows=0) # This pulls a character name to try to match next_character to. 
-            current_name = current_name_raw.columns.values[0] # This turns the current_name_raw into a color value that can easily be used by the Python code.
-            #print(current_name) # This makes sure that current_name is working. Don't un-comment unless this is really needed, otherwise you'll get a very long list of data.
-
-            if current_name == next_character:
-                turtle.goto(node_coordinates[name_iterator])
-                #print("Yo, it worked!") # This makes sure that the loop is working.
-                did_it_work = True # This sets the variable established earlier for the sole purpose of being set to True if this finds a first node to True if this finds a first node.
-
-            name_iterator += 1 # This restarts the loop.
-
-        # This makes the cursor not draw a node from where it last was to a second node if it can find a second node but not a first node.
-        global should_i_draw # This summons in the global variable that checks if all this is working.
-        should_i_draw = True # This sets it to True just in case it was False last. It should be True unless it can't find the right node.
-        if did_it_work == False: # This sets the above variable to False if it can't find the second node.
-            should_i_draw = False
-            
-        # This checks to see if the above is working.
-        #print(did_it_work)
-        #print(should_i_draw)
-        
-    except:
-        print("IndexError: index 0 is out of bounds for axis 0 with size 0")
-
-        
-# This draws all the relationship lines between the nodes in the diagram.
-for i in range(relationships_num): # This line iterates through the number of all the relationships in the Excel table.
-    go_to_node("A") # This makes the turtle jump to the point needed for the first node in a relationship.
-    #turtle.goto(random_node_coordinates()) # This makes the turtle jump to a random point in the table to begin drawing a test relationship.
-
-    if should_i_draw == True: # This makes the cursor start drawing a relationship if it's found appropriate nodes to draw the relationship between.
-        turtle.pendown() # This makes the cursor start drawing a relationship.
-
-    # This sets the pencolor to the color specified in Excel if it finds one, and otherwise sets the pencolor to default.
-    turtle.pencolor(is_color(pd.read_excel(file_path, sheet_name='Relationships', index_col=None, header=0, usecols="C", skiprows=i+1, nrows=0).columns.values[0]))    
-    #turtle.pencolor(random_color()) # This makes the relationship that the cursor will draw be a randomly colored line.
-
-    go_to_node("B") # This makes the turtle jump to the point needed for the second node in a relationship.
-    #turtle.goto(random_node_coordinates()) # This makes the cursor draw a random relationship.
-    turtle.penup() # This makes the cursor finish drawing a relationship.
+# This entire chunk was pulled from Perplexity to speed up the program, unmodified except where [explicitly noted]. Don't judge my coding skill, reader-senpai!
 
 
-# This draws all the node names.
-# It draws them after the relationship lines between them have been drawn
-# so they'll appear over the lines instead of under them
-# and thus are legible even in diagrams with many lines.
+# Load all relevant columns from Relationships sheet at once
+relationships_df = pd.read_excel(file_path, sheet_name='Relationships', usecols="A:C")
 
-turtle.goto(node_coordinates[0]) # This moves the turtle to the location of the first node before printing the names.
+# Convert columns to lists
+first_nodes  = relationships_df.iloc[:, 0].tolist()  # Column A
+second_nodes = relationships_df.iloc[:, 1].tolist()  # Column B
+colors       = relationships_df.iloc[:, 2].tolist()  # Column C
 
-for i in range(diagram_nodes_num): # This calls on the number of vertices again to draw that many node names.
+
+# Load both Names and Colors in one go from the Names sheet
+names_df = pd.read_excel(file_path, sheet_name='Names', usecols="A,B")
+names_list = names_df.iloc[:, 0].tolist()     # Column A: Short names
+name_colors = names_df.iloc[:, 1].tolist()    # Column B: Name colors
+
+
+# ]This makes the turtle go to a node entered given the correct column of data to pull from the Excel table, needed for moving to the node on each end of a relationship.]
+def go_to_node(next_character):
+    global should_i_draw  # [This summons in the global variable that checks if all this is working.]
+
+    did_it_work = False  # [This is a variable that will be changed to True if the function can find a name.]
+    name_iterator = 0
+
+    while name_iterator < len(names_list):  # [so while it's still looking for the desired character to draw a line from or to]
+        if names_list[name_iterator] == next_character:
+            turtle.goto(node_coordinates[name_iterator])  # [start or end the line here, this is the right character]
+            did_it_work = True
+            break  # [okay we got the right character, time for a lunch break]
+        name_iterator += 1  # [no that wasn't the right character, keep going]
+
+    should_i_draw = did_it_work  # Set draw flag based on result
+
+    # [Formerly thought that, if the character couldn't be found, the user needs to be aware of it. Then that annoyed me, so now it's commented out.]
+    #if not did_it_work:
+    #    print(f"Character '{next_character}' not found.")
+
+
+for i in range(len(first_nodes)):  # same as relationships_num
+    go_to_node(first_nodes[i])  # [This makes the turtle jump to the f]irst character in the relationship
+
+    # [This makes the cursor start drawing a relationship if it's found appropriate nodes to draw the relationship between.\
+    if should_i_draw:
+        turtle.pendown()
+
+    # Set color from preloaded list
+    turtle.pencolor(is_color(colors[i]))
+
+    go_to_node(second_nodes[i])  # [This makes the turtle jump to the s]econd character in the relationship
+
+    turtle.penup() # [This makes the cursor finish drawing a relationship.]
+
+
+# [This draws all the node names.]
+# [It draws them after the relationship lines between them have been drawn]
+# [so they'll appear over the lines instead of under them]
+# [and thus are legible even in diagrams with many lines.]
+
+turtle.goto(node_coordinates[0])  # Prepare to print node names at the correct location
+
+for i in range(diagram_nodes_num):
+    next_name = names_list[i]
+    next_color = name_colors[i]
+
+    # Set the turtle color to the color from your Excel sheet, or a default if invalid
+    safe_color = is_color(name_colors[i])
+    turtle.color(safe_color)
+
+    turtle.write(next_name)  # Write the node name at the current location
+
+    # Move to the location of the next node in the diagram
+    turtle.penup()  # [This prevents Turtle from drawing a line following the cursor.]
+    turtle.setheading((i+1)*tilt_per_diagram_side)  # [This sets the cursor to the right angle given the number of diagram sides and the number of nodes already drawn so it can easily draw the next node.]
+    turtle.forward(side_size)
+
+
+# Perplexity input ends here.
+
+
+
+turtle.hideturtle() # This removes the cursor so it doesn't get in the way of screenshots.
+
+# This makes the program show changes if they've been disabled during drawing for speed by the user.
+if speedrun == 1:
+    turtle.update()
     
-    # This reads the relevant shorthand name from the relevant column and next row up for drawing in the diagram of the Names sheet of the fed-in Excel file,
-    # thus saving what names are to be displayed in the diagram to this variable so they can be displayed later.
-    # "skiprows=i+1" skips a number of rows equal to the iterator, printing the correct value on each line.
-    # Don't change it from being equal to "i" to being equal to a static value (like "1"), or the program will only print one value every time.
-    # "skiprows=i" prints the header value as the first value and doesn't print the last value, hence "i+1".
-    next_name = pd.read_excel(file_path, sheet_name='Names', index_col=None, header=0, usecols="A", skiprows=i+1, nrows=0) # This pulls the shorthand name.
-
-    # This reads the relevant shorthand name from the relevant column and next row up for drawing in the diagram of the Names sheet of the fed-in Excel file,
-    # thus saving what names are to be displayed in the diagram to this variable so they can be displayed later.
-    # "skiprows=i+1" skips a number of rows equal to the iterator, printing the correct value on each line.
-    # Don't change it from being equal to "i" to being equal to a static value (like "1"), or the program will only print one value every time.
-    # "skiprows=i" prints the header value as the first value and doesn't print the last value, hence "i+1".
-    next_color_raw = pd.read_excel(file_path, sheet_name='Names', index_col=None, header=0, usecols="B", skiprows=i+1, nrows=0) # This pulls the name color.
-    next_color = next_color_raw.columns.values[0] # This turns the next_color_raw into a color value that can easily be used by the Python code.
-    #print(next_color) # This is a test line to ensure that the next_color pulling is working.
-
-    # This prints the character names pulled above in the colors pulled above (or black, if a broken color cell has been pulled, printing that the color is broken if not absent).
-    turtle.color("blue") # This is a test line to ensure that the below line is working properly.
-    turtle.color(is_color(next_color)) # This sets the color of the node to the color input in the Excel sheet, or black if the color entered isn't correct.
-    turtle.write(next_name.columns.values[0]) # This writes the shorthand name pulled above.
-    #turtle.dot(2, random_color()) # This is a test line that draws a randomly colored dot on the screen.
-
-    # This moves to the location of the next node in the diagram.
-    turtle.penup() # This prevents Turtle from drawing a line following the cursor.
-    turtle.setheading((i+1)*tilt_per_diagram_side) # This sets the cursor to the right angle given the number of diagram sides and the number of nodes already drawn so it can easily draw the next node.
-    turtle.forward(side_size) # This is an attempt to see my black dot without the cursor sitting on it.
-
-
-# This sends the cursor way off in the bottom-right corner where it shouldn't get into screenshots.
-print("Now, all that's left is to take a screenshot of your diagram!") # This prompts the user to take a screenshot of the diagram before the program ends.
-final_x = diagram_nodes_num * 100 # This creates the x coordinate for the bottom-right corner. "*1000" puts it significantly far from the center, even on small diagrams.
-final_y = diagram_nodes_num * -100 # This creates the y coordinate for the bottom-right corner. "*-1000" puts it significantly far from the center, even on small diagrams.
-#print(final_x, " ", final_y) # This prints the x and y coordinates to make sure they're good.
-turtle.goto(final_x, final_y) # This sends the turtle into the bottom-right corner.
-
-
-# This prompts the again to take a screenshot of the diagram before the program ends.
-print("Once you're done, hit return to end the program. Warning: This may get rid of your diagram, so make sure to take a screenshot first!")
-program_ending = input() # This makes a new variable that will never be used again just to get the program to end only when the user hits return.
+print("Now, all that's left is to take a screenshot of your diagram!")
+print("Once you're done, close the diagram's window to end the program.")
+turtle.done() # This helps users screenshot the diagram by keeping Turtle from eating it.
